@@ -1,3 +1,58 @@
+import { ethers } from "ethers";
+import { useEffect, useState } from "react";
+// import { contractAbi, contractAddress } from './Constant/constant';
+
+const RemainingTime = () => {
+    // @ts-ignore
+  const [remainingtime, setRemainingTime] = useState<any>("");
+
+  useEffect(() => {
+    getRemainingTime();
+  }, []);
+
+  async function getRemainingTime() {
+    // @ts-ignore
+    if (typeof window.ethereum !== 'undefined') {
+        // @ts-ignore
+      const provider =  new ethers.BrowserProvider(window.ethereum);
+      console.log("done");
+      
+      await provider.send("eth_requestAccounts", []);
+      console.log("bun");
+      
+      const signer = await provider.getSigner();
+      console.log("kun");
+      
+      const contractInstance = new ethers.Contract(contractAddress, contractAbi, signer);
+      console.log("lone", contractInstance);
+      const vs = await contractInstance.getVotingStatus();
+
+      console.log(vs);
+      
+    //   const time = await contractInstance.getRemainingTime();
+    //   console.log(time);
+      
+    //   setRemainingTime(parseInt(time, 16));
+    //   console.log(parseInt(time, 16));
+    } else {
+      console.error('Ethereum provider not found');
+    }
+  }
+
+  return (
+    <div>
+      {remainingtime}
+    </div>
+  );
+};
+
+export default RemainingTime;
+
+
+
+
+
+
 const contractAddress = "0x7b5fdCb7a5d983cfB70f2EF55aB8DFe7607A2C00";
 
 const contractAbi = [
@@ -164,5 +219,3 @@ const contractAbi = [
       "type": "function"
     }
   ];
-
-export {contractAbi, contractAddress};

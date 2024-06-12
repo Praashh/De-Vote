@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { type AnimationProps, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect } from "react";
+import useAuth from "../context/useAuth";
 
 const animationProps = {
   initial: { "--x": "100%", scale: 0.8 },
@@ -24,28 +25,56 @@ const animationProps = {
 } as AnimationProps;
 
 const ConnectWalletButton = () => {
-    const [connected, setConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
+  //  @ts-ignore
+  const {connected, setConnected, walletAddress, setWalletAddress}= useAuth();
+
+
+  useEffect(() => {
+    isConnected();
+  }, []);
+
+  async function isConnected() {
+    // @ts-ignore
+    // const accounts = await ethereum.request({ method: 'eth_accounts' });
+    // if (accounts.length) {
+    //   setConnected(true);
+    //   setWalletAddress(accounts[0]);
+    //   console.log(`You're connected to: ${accounts[0]}`);
+    // } else {
+    //   console.log("Metamask is not connected");
+    // }
+    if(localStorage.getItem("wallet")){
+      setConnected(true);
+      const address = localStorage.getItem("wallet");
+      setWalletAddress(address!);
+    }else{
+      setConnected(false)
+      setWalletAddress('')
+    }
+  }
 
   async function connectWallet() {
     if (!connected) {
-        // @ts-ignore
+      // @ts-ignore
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const _walletAddress = await signer.getAddress();
       setConnected(true);
       setWalletAddress(_walletAddress);
+      localStorage.setItem("wallet", _walletAddress);
+      console.log(`Wallet connected: ${_walletAddress}`);
     } else {
-    //   @ts-ignore
-      window.ethereum.selectedAddress = null;
+      // Disconnect wallet logic
       setConnected(false);
       setWalletAddress("");
+      localStorage.removeItem("wallet");
+      console.log("Wallet disconnected");
     }
   }
 
   return (
     <motion.button
-    onClick={connectWallet}
+      onClick={connectWallet}
       {...animationProps}
       className="relative rounded-lg px-6 py-2 font-medium backdrop-blur-xl transition-[box-shadow] duration-300 ease-in-out hover:shadow dark:bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/10%)_0%,transparent_60%)] dark:hover:shadow-[0_0_20px_hsl(var(--primary)/10%)]"
     >
@@ -56,7 +85,7 @@ const ConnectWalletButton = () => {
             "linear-gradient(-75deg,hsl(var(--primary)) calc(var(--x) + 20%),transparent calc(var(--x) + 30%),hsl(var(--primary)) calc(var(--x) + 100%))",
         }}
       >
-         Connect Wallet
+        {connected ? "Disconnect" : "Connect Wallet"}
       </span>
       <span
         style={{
